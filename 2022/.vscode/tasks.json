@@ -6,7 +6,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "ghc --make main"
+            "command": "ghc --make ${file} -o ${fileDirname}/${fileBasenameNoExtension}.exe",
         },
         {
             "label": "run",
