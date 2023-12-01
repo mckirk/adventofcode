@@ -1,0 +1,5 @@
+pydantic
+pytz
+requests
+tenacity
+html2text
