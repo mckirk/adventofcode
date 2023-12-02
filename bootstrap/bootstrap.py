@@ -18,7 +18,7 @@ TEMPLATE = """#!/usr/bin/env python3
 from pathlib import Path
 
 input_file = Path(__file__).parent / "input.txt"
-# input_file = Path(__file__).parent / "sample.txt"
+# input_file = Path(__file__).parent / "sample1.txt"
 input = input_file.read_text().strip()
 lines = input.splitlines()
 
@@ -46,8 +46,8 @@ class SubmissionAnswer(Enum):
     INCORRECT = 4
     TOO_RECENTLY = 5
 
-
-with open("config.json", "r") as f:
+script_dir = Path(__file__).parent
+with open(script_dir/ "config.json", "r") as f:
     config = Config.model_validate_json(f.read())
 tz = pytz.timezone("CET")
 
@@ -72,12 +72,13 @@ class AdventDay:
         self.day = day
         self.year = year
 
-        self.day_dir = Path(__file__).parent.parent / f"{year}py" / f"day{day:02d}"
+        self.day_dir = script_dir.parent / f"{year}py" / f"day{day:02d}"
 
         self.part1_path = Path(self.day_dir) / "part1.py"
         self.part2_path = Path(self.day_dir) / "part2.py"
         self.input_path = Path(self.day_dir) / "input.txt"
-        self.sample_path = Path(self.day_dir) / "sample.txt"
+        self.sample1_path = Path(self.day_dir) / "sample1.txt"
+        self.sample2_path = Path(self.day_dir) / "sample2.txt"
         self.description_path = Path(self.day_dir) / "description.md"
 
         self.session = requests.Session()
@@ -88,7 +89,7 @@ class AdventDay:
             }
         )
 
-    def create_structure(self):
+    def create_structure_part1(self):
         print(f"Creating directory {self.day_dir}...")
         self.day_dir.mkdir(exist_ok=True, parents=True)
 
@@ -97,14 +98,24 @@ class AdventDay:
             self.part1_path.touch(exist_ok=False)
             self.part1_path.write_text(TEMPLATE)
 
+        if not self.sample1_path.exists():
+            print(f"Creating sample.txt...")
+            self.sample1_path.touch(exist_ok=False)
+
+    def create_structure_part2(self):
+        # update description for part 2
+        self.fetch_description()
+
+        # copy part 1 to part 2
         if not self.part2_path.exists():
             print(f"Creating part2.py...")
             self.part2_path.touch(exist_ok=False)
-            self.part2_path.write_text(TEMPLATE)
+            self.part2_path.write_text(self.part1_path.read_text().replace("sample1.txt", "sample2.txt"))
 
-        if not self.sample_path.exists():
-            print(f"Creating sample.txt...")
-            self.sample_path.touch(exist_ok=False)
+        if not self.sample2_path.exists():
+            print(f"Creating sample2.txt...")
+            self.sample2_path.touch(exist_ok=False)
+            self.sample2_path.write_text(self.sample1_path.read_text())
 
     def wait_until_6am(self):
         wait_until = datetime(self.year, 12, self.day, 6, 0, 0, 0, tzinfo=tz)
@@ -153,7 +164,6 @@ class AdventDay:
                 "-n",
                 str(self.day_dir),
                 str(self.part1_path),
-                str(self.part2_path),
                 str(self.input_path),
                 str(self.description_path),
             ]
@@ -196,8 +206,7 @@ class AdventDay:
     def submit_answers_until_correct(self):
         for part in [1, 2]:
             if part == 2:
-                # update description for part 2
-                self.fetch_description()
+                self.create_structure_part2()
 
             while True:
                 print(f"Enter answer for part {part}:")
@@ -237,7 +246,7 @@ def main():
 
     advent_day = AdventDay(day, year)
 
-    advent_day.create_structure()
+    advent_day.create_structure_part1()
     advent_day.wait_until_6am()
     advent_day.fetch_description()
     advent_day.fetch_input()
