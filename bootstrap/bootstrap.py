@@ -39,15 +39,23 @@ class Config(BaseModel):
     session: str
 
 
+class DayStats(BaseModel):
+    started: datetime | None
+    part1: timedelta | None = None
+    part2: timedelta | None = None
+
+
 class SubmissionAnswer(Enum):
     CORRECT = 1
     TOO_HIGH = 2
     TOO_LOW = 3
     INCORRECT = 4
     TOO_RECENTLY = 5
+    ALREADY_SOLVED = 6
+
 
 script_dir = Path(__file__).parent
-with open(script_dir/ "config.json", "r") as f:
+with open(script_dir / "config.json", "r") as f:
     config = Config.model_validate_json(f.read())
 tz = pytz.timezone("CET")
 
@@ -80,6 +88,7 @@ class AdventDay:
         self.sample1_path = Path(self.day_dir) / "sample1.txt"
         self.sample2_path = Path(self.day_dir) / "sample2.txt"
         self.description_path = Path(self.day_dir) / "description.md"
+        self.stats_path = Path(self.day_dir) / "stats.json"
 
         self.session = requests.Session()
         self.session.cookies.set("session", config.session)
@@ -110,7 +119,9 @@ class AdventDay:
         if not self.part2_path.exists():
             print(f"Creating part2.py...")
             self.part2_path.touch(exist_ok=False)
-            self.part2_path.write_text(self.part1_path.read_text().replace("sample1.txt", "sample2.txt"))
+            self.part2_path.write_text(
+                self.part1_path.read_text().replace("sample1.txt", "sample2.txt")
+            )
 
         if not self.sample2_path.exists():
             print(f"Creating sample2.txt...")
@@ -123,6 +134,29 @@ class AdventDay:
         while (wait_delta := wait_until - datetime.now(tz)).total_seconds() > 0:
             print(f"Waiting {wait_delta.total_seconds()} seconds until 6am CET...")
             time.sleep(wait_delta.total_seconds())
+
+    def update_stats(self, step: int):
+        if step == 0:
+            if not self.stats_path.exists():
+                print(f"Creating stats.json...")
+                self.stats_path.touch(exist_ok=False)
+                self.stats_path.write_text(
+                    DayStats(started=datetime.now(tz)).model_dump_json(indent=2)
+                )
+        else:
+            stats = DayStats.model_validate_json(self.stats_path.read_text())
+
+            changed = False
+            if step == 1 and stats.part1 is None:
+                stats.part1 = datetime.now(tz) - stats.started
+                changed = True
+            elif step == 2 and stats.part2 is None:
+                stats.part2 = datetime.now(tz) - stats.started
+                changed = True
+            
+            if changed:
+                self.stats_path.write_text(stats.model_dump_json(indent=2))
+
 
     def fetch_input(self):
         if self.input_path.exists():
@@ -191,7 +225,7 @@ class AdventDay:
         elif "That's not the right answer" in content:
             return SubmissionAnswer.INCORRECT, None
         elif "You don't seem to be solving the right level." in content:
-            raise Exception("You don't seem to be solving the right level.")
+            return SubmissionAnswer.ALREADY_SOLVED, None
         else:
             time_left_match = TIME_LEFT_REGEX.search(content)
             if time_left_match:
@@ -207,6 +241,7 @@ class AdventDay:
         for part in [1, 2]:
             if part == 2:
                 self.create_structure_part2()
+                self.update_stats(1)
 
             while True:
                 print(f"Enter answer for part {part}:")
@@ -230,11 +265,14 @@ class AdventDay:
                     delta = (next_submit_time - datetime.now(tz)).total_seconds()
                     if delta > 0:
                         time.sleep(delta)
+                elif answer == SubmissionAnswer.ALREADY_SOLVED:
+                    print(f"Seems to be already solved, continuing...")
+                    break
                 else:
                     raise Exception("Unexpected submission answer!")
 
         print("gg")
-
+        self.update_stats(2)
 
 def main():
     parser = create_argparser()
@@ -248,6 +286,7 @@ def main():
 
     advent_day.create_structure_part1()
     advent_day.wait_until_6am()
+    advent_day.update_stats(0)
     advent_day.fetch_description()
     advent_day.fetch_input()
     advent_day.start_editor()
