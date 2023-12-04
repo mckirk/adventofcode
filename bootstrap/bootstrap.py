@@ -45,7 +45,7 @@ class DayStats(BaseModel):
     part2: timedelta | None = None
 
 
-class SubmissionAnswer(Enum):
+class SubmissionResponse(Enum):
     CORRECT = 1
     TOO_HIGH = 2
     TOO_LOW = 3
@@ -89,6 +89,8 @@ class AdventDay:
         self.sample2_path = Path(self.day_dir) / "sample2.txt"
         self.description_path = Path(self.day_dir) / "description.md"
         self.stats_path = Path(self.day_dir) / "stats.json"
+
+        self.solution_cache: dict[tuple[int, str], SubmissionResponse] = dict()
 
         self.session = requests.Session()
         self.session.cookies.set("session", config.session)
@@ -203,8 +205,12 @@ class AdventDay:
             ]
         )
 
-    @cache
     def submit_answer(self, part: int, answer: str):
+        cached_solution = self.solution_cache.get((part, answer))
+        if cached_solution is not None:
+            print(f"Answer in cache")
+            return cached_solution, None
+
         print(f"Submitting answer for part {part}...")
         resp = self.session.post(
             f"https://adventofcode.com/{self.year}/day/{self.day}/answer",
@@ -216,26 +222,31 @@ class AdventDay:
 
         content = resp.text
 
+        response = None
         if "That's the right answer!" in content:
-            return SubmissionAnswer.CORRECT, None
+            response = SubmissionResponse.CORRECT
         elif "too high" in content:
-            return SubmissionAnswer.TOO_HIGH, None
+            response = SubmissionResponse.TOO_HIGH
         elif "too low" in content:
-            return SubmissionAnswer.TOO_LOW, None
+            response = SubmissionResponse.TOO_LOW
         elif "That's not the right answer" in content:
-            return SubmissionAnswer.INCORRECT, None
+            response = SubmissionResponse.INCORRECT
         elif "You don't seem to be solving the right level." in content:
-            return SubmissionAnswer.ALREADY_SOLVED, None
+            response = SubmissionResponse.ALREADY_SOLVED
+        
+        if response is not None:
+            self.solution_cache[(part, answer)] = response
+            return response, None
+
+        time_left_match = TIME_LEFT_REGEX.search(content)
+        if time_left_match:
+            min = int(time_left_match.group("min") or 0)
+            sec = int(time_left_match.group("sec") or 0)
+            return SubmissionResponse.TOO_RECENTLY, datetime.now(tz) + timedelta(
+                minutes=min, seconds=sec
+            )
         else:
-            time_left_match = TIME_LEFT_REGEX.search(content)
-            if time_left_match:
-                min = int(time_left_match.group("min") or 0)
-                sec = int(time_left_match.group("sec") or 0)
-                return SubmissionAnswer.TOO_RECENTLY, datetime.now(tz) + timedelta(
-                    minutes=min, seconds=sec
-                )
-            else:
-                raise Exception("Could not interpret the submission result")
+            raise Exception("Could not interpret the submission result")
 
     def submit_answers_until_correct(self):
         for part in [1, 2]:
@@ -249,23 +260,23 @@ class AdventDay:
 
                 answer, next_submit_time = self.submit_answer(part, part_answer)
 
-                if answer == SubmissionAnswer.CORRECT:
+                if answer == SubmissionResponse.CORRECT:
                     print(f"Correct!")
                     break
-                elif answer == SubmissionAnswer.TOO_HIGH:
+                elif answer == SubmissionResponse.TOO_HIGH:
                     print(f"Too high!")
-                elif answer == SubmissionAnswer.TOO_LOW:
+                elif answer == SubmissionResponse.TOO_LOW:
                     print(f"Too low!")
-                elif answer == SubmissionAnswer.INCORRECT:
+                elif answer == SubmissionResponse.INCORRECT:
                     print(f"Incorrect!")
-                elif answer == SubmissionAnswer.TOO_RECENTLY:
+                elif answer == SubmissionResponse.TOO_RECENTLY:
                     print(
                         f"Too recently submitted, waiting until {next_submit_time}..."
                     )
                     delta = (next_submit_time - datetime.now(tz)).total_seconds()
                     if delta > 0:
                         time.sleep(delta)
-                elif answer == SubmissionAnswer.ALREADY_SOLVED:
+                elif answer == SubmissionResponse.ALREADY_SOLVED:
                     print(f"Seems to be already solved, continuing...")
                     break
                 else:
