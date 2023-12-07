@@ -285,6 +285,9 @@ class AdventDay:
         print("gg")
         self.update_stats(2)
 
+        # update description to include solution
+        self.fetch_description()
+
 def main():
     parser = create_argparser()
     args = parser.parse_args()
