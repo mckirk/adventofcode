@@ -199,9 +199,9 @@ class AdventDay:
                 "code",
                 "-n",
                 str(self.day_dir),
-                str(self.part1_path),
-                str(self.input_path),
                 str(self.description_path),
+                str(self.part1_path),
+                str(self.sample1_path),
             ]
         )
 
