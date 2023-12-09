@@ -3,7 +3,6 @@
 import argparse
 from datetime import datetime, timedelta
 from enum import Enum
-from functools import cache
 from pathlib import Path
 import re
 import time
@@ -16,6 +15,11 @@ import subprocess
 
 TEMPLATE = """#!/usr/bin/env python3
 from pathlib import Path
+import sys
+
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
+from lib.aocparser import parse
 
 input_file = Path(__file__).parent / "input.txt"
 # input_file = Path(__file__).parent / "sample1.txt"
@@ -23,6 +27,7 @@ input = input_file.read_text().strip()
 lines = input.splitlines()
 
 def main():
+    # x = parse(input, spec)
     pass
     
 if __name__ == "__main__":
