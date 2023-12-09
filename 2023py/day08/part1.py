@@ -7,9 +7,9 @@ input_file = Path(__file__).parent / "input.txt"
 # input_file = Path(__file__).parent / "sample1.txt"
 input = input_file.read_text().strip()
 
-spec = """<word/>
+spec = """{w}
 
-<elem join='\\n'><word n='key'/> = (<word n='L'/>, <word n='R'/>)</elem>"""
+[{key:w} = ({L:w}, {R:w})|\n]"""
 
 def main():
     d, nodes = parse(input, spec)
