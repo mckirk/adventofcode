@@ -15,16 +15,15 @@ import subprocess
 
 TEMPLATE = """#!/usr/bin/env python3
 from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from lib.aocparser import parse
+from aocparser import parse
 
 input_file = Path(__file__).parent / "input.txt"
 # input_file = Path(__file__).parent / "sample1.txt"
 input = input_file.read_text().strip()
 lines = input.splitlines()
+
+spec = \"""\\
+\"""
 
 def main():
     # x = parse(input, spec)

@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from lib.aocparser import parse
+from aocparser import parse
 
 
 input_file = Path(__file__).parent / "input.txt"

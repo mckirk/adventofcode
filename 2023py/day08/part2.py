@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from lib.aocparser import parse
+from aocparser import parse
 from lib.lcm import lcmm
 
 input_file = Path(__file__).parent / "input.txt"
