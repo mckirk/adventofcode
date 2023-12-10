@@ -14,7 +14,9 @@ from tenacity import retry, stop_after_attempt, wait_random
 import subprocess
 
 TEMPLATE = """#!/usr/bin/env python3
+from collections import defaultdict, Counter
 from pathlib import Path
+from pprint import pprint
 from aocparser import parse
 
 input_file = Path(__file__).parent / "input.txt"
@@ -26,7 +28,6 @@ spec = \"""\\
 \"""
 
 def main():
-    # x = parse(input, spec)
     pass
     
 if __name__ == "__main__":
