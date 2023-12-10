@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from abc import ABC, abstractmethod
 from collections import defaultdict, Counter
+from dataclasses import dataclass
 from pathlib import Path
 from pprint import pprint
 from typing import Iterable
@@ -13,39 +14,55 @@ input = input_file.read_text().strip()
 lines = input.splitlines()
 
 
-def directions():
-    for xd in [-1, 0, 1]:
-        for yd in [-1, 0, 1]:
-            if xd == yd == 0:
-                continue
-            yield (xd, yd)
+@dataclass(frozen=True, unsafe_hash=True)
+class V:
+    x: int
+    y: int
 
+    def __add__(self, other):
+        return V(self.x + other.x, self.y + other.y)
+    
+    def __sub__(self, other):
+        return V(self.x - other.x, self.y - other.y)
+    
+    def __mul__(self, other):
+        return V(self.x * other, self.y * other)
+    
+    def __rmul__(self, other) -> "V":
+        return self * other
+    
+    def __floordiv__(self, other):
+        return V(self.x // other, self.y // other)
+    
+    def __neg__(self):
+        return V(-self.x, -self.y)
+    
+    def __abs__(self):
+        return V(abs(self.x), abs(self.y))
+    
+    def __iter__(self):
+        yield self.x
+        yield self.y
+    
+    def within(self, limits):
+        return 0 <= self.x < limits[0] and 0 <= self.y < limits[1]
+    
+    def dist(self, other):
+        return sum(abs(self - other))
 
-def inv(d):
-    xd, yd = d
-    return (-xd, -yd)
+    @classmethod
+    def directions(cls):
+        for xd in [-1, 0, 1]:
+            for yd in [-1, 0, 1]:
+                if xd == yd == 0:
+                    continue
+                yield cls(xd, yd)
 
-
-def add(p, d):
-    return tuple(v1 + v2 for v1, v2 in zip(p, d))
-
-
-def sub(p1, p2):
-    return tuple(v1 - v2 for v1, v2 in zip(p1, p2))
-
-
-def adj(p, limits):
-    for d in directions():
-        x2, y2 = add(p, d)
-        if x2 < 0 or x2 >= limits[0]:
-            continue
-        if y2 < 0 or y2 >= limits[1]:
-            continue
-        yield ((x2, y2), d)
-
-
-def dist(p1, p2):
-    return sum(abs(v1 - v2) for (v1, v2) in zip(p1, p2))
+    def adj(self, limits):
+        for d in self.directions():
+            p2 = self + d
+            if p2.within(limits):
+                yield p2, d
 
 
 class Board(ABC):
@@ -80,7 +97,7 @@ class ListBoard(Board):
         tiles = dict()
         for y, l in enumerate(self.board):
             for x, c in enumerate(l):
-                tiles[(x, y)] = c
+                tiles[V(x, y)] = c
 
         return tiles
 
@@ -96,7 +113,7 @@ class DictBoard(Board):
         for y in range(yl):
             l = ""
             for x in range(xl):
-                l += self.board.get((x, y), self.fill)
+                l += self.board.get(V(x, y), self.fill)
             yield l
 
     def to_list(self):
@@ -111,12 +128,12 @@ class DictBoard(Board):
 
 
 B = {
-    "|": [(0, 1), (0, -1)],
-    "-": [(1, 0), (-1, 0)],
-    "L": [(0, -1), (1, 0)],
-    "J": [(0, -1), (-1, 0)],
-    "7": [(0, 1), (-1, 0)],
-    "F": [(0, 1), (1, 0)],
+    "|": [V(0, 1), V(0, -1)],
+    "-": [V(1, 0), V(-1, 0)],
+    "L": [V(0, -1), V(1, 0)],
+    "J": [V(0, -1), V(-1, 0)],
+    "7": [V(0, 1), V(-1, 0)],
+    "F": [V(0, 1), V(1, 0)],
 }
 
 
@@ -137,12 +154,12 @@ def find_loop(start, tiles):
             cur_t = tiles[cur]
 
             if cur_t == "S":
-                ds = directions()
+                ds = V.directions()
             else:
                 ds = B[cur_t]
 
             for d in ds:
-                o = add(cur, d)
+                o = cur + d
                 next_path = cur_path + [o]
                 seen_path = seen.get(o)
                 if seen_path is not None:
@@ -156,7 +173,7 @@ def find_loop(start, tiles):
                 if not t or not t in B:
                     continue
 
-                if inv(d) in B[t]:
+                if -d in B[t]:
                     next_pos.append((o, next_path))
                     seen[o] = next_path
 
@@ -172,32 +189,30 @@ def find_loop(start, tiles):
     return loop
 
 
-def blow_up(lines, loop):
+def blow_up(lines, loop: list[V]):
     new_tiles = dict()
     new_loop = list()
     for y, l in enumerate(lines):
         for x, c in enumerate(l):
-            new_tiles[(2 * x, 2 * y)] = c
+            new_tiles[2*V(x, y)] = c
 
     cur = None
 
     new_loop = []
     for p in loop + [loop[0]]:
-        px, py = p
-        npx, npy = 2 * px, 2 * py
-        np = (npx, npy)
+        np = 2*p
 
         if cur is not None:
-            dx, dy = sub(np, cur)
+            d = np - cur
 
-            if dx != 0:
-                assert dy == 0
-                i = (npx - (dx // 2), npy)
+            if d.x != 0:
+                assert d.y == 0
+                i = np - (d // 2)
                 new_tiles[i] = "-"
                 new_loop.append(i)
-            elif dy != 0:
-                assert dx == 0
-                i = (npx, npy - (dy // 2))
+            elif d.y != 0:
+                assert d.x == 0
+                i = np - (d // 2)
                 new_tiles[i] = "|"
                 new_loop.append(i)
             else:
@@ -223,13 +238,13 @@ def main():
     nlimits = (len(lines[0]) * 2, len(lines) * 2)
     nloops = set(nloop)
 
-    outside = set()
+    outside: set[V] = set()
     for x in range(nlimits[0]):
-        outside.add((x, -1))
-        outside.add((x, nlimits[1]))
+        outside.add(V(x, -1))
+        outside.add(V(x, nlimits[1]))
     for y in range(nlimits[1]):
-        outside.add((-1, y))
-        outside.add((nlimits[0], y))
+        outside.add(V(-1, y))
+        outside.add(V(nlimits[0], y))
 
     cur_outside = set(outside)
 
@@ -237,7 +252,7 @@ def main():
         new_outside = set()
 
         for p in cur_outside:
-            for a, d in adj(p, nlimits):
+            for a, d in p.adj(nlimits):
                 if not a in outside and not a in nloops:
                     new_outside.add(a)
                     outside.add(a)

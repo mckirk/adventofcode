@@ -1,15 +1,67 @@
+from dataclasses import dataclass
 from enum import Enum
 
 
+@dataclass(frozen=True, unsafe_hash=True)
+class V:
+    x: int
+    y: int
+
+    def __add__(self, other):
+        return V(self.x + other.x, self.y + other.y)
+    
+    def __sub__(self, other):
+        return V(self.x - other.x, self.y - other.y)
+    
+    def __mul__(self, other):
+        return V(self.x * other, self.y * other)
+    
+    def __rmul__(self, other) -> "V":
+        return self * other
+    
+    def __floordiv__(self, other):
+        return V(self.x // other, self.y // other)
+    
+    def __neg__(self):
+        return V(-self.x, -self.y)
+    
+    def __abs__(self):
+        return V(abs(self.x), abs(self.y))
+    
+    def __iter__(self):
+        yield self.x
+        yield self.y
+    
+    def within(self, limits):
+        return 0 <= self.x < limits[0] and 0 <= self.y < limits[1]
+    
+    def dist(self, other):
+        return sum(abs(self - other))
+
+    @classmethod
+    def directions(cls):
+        for xd in [-1, 0, 1]:
+            for yd in [-1, 0, 1]:
+                if xd == yd == 0:
+                    continue
+                yield cls(xd, yd)
+
+    def adj(self, limits):
+        for d in self.directions():
+            p2 = self + d
+            if p2.within(limits):
+                yield p2, d
+
+
 class Dir(Enum):
-    N = (0, -1)
-    NE = (1, -1)
-    E = (1, 0)
-    SE = (1, 1)
-    S = (0, 1)
-    SW = (-1, 1)
-    W = (-1, 0)
-    NW = (-1, -1)
+    N = V(0, -1)
+    NE = V(1, -1)
+    E = V(1, 0)
+    SE = V(1, 1)
+    S = V(0, 1)
+    SW = V(-1, 1)
+    W = V(-1, 0)
+    NW = V(-1, -1)
 
 
 def directions():
