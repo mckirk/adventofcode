@@ -77,3 +77,12 @@ class DictBoard(Board):
                 return p
 
         return None
+
+    def find_all(self, e):
+        for p, c in self.board.items():
+            if c == e:
+                yield p
+
+
+def transpose(lines):
+    return ["".join(l) for l in zip(*lines)]
