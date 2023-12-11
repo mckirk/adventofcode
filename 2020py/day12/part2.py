@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+from collections import defaultdict, Counter
+from pathlib import Path
+from pprint import pprint
+from aocparser import parse
+
 from dataclasses import dataclass
 from enum import Enum
 
@@ -94,51 +100,31 @@ class Dir(Enum):
         return list(transl.keys())[new]
 
 
-def directions():
-    for xd in [-1, 0, 1]:
-        for yd in [-1, 0, 1]:
-            if xd == yd == 0:
-                continue
-            yield (xd, yd)
+input_file = Path(__file__).parent / "input.txt"
+# input_file = Path(__file__).parent / "sample2.txt"
+input = input_file.read_text().strip()
+lines = input.splitlines()
 
+def main():
+    ins = []
+    for l in lines:
+        ins.append((l[0], int(l[1:])))
 
-def adj(p, limits):
-    for d in directions():
-        x2, y2 = add(p, d)
-        if x2 < 0 or x2 >= limits[0]:
-            continue
-        if y2 < 0 or y2 >= limits[1]:
-            continue
-        yield ((x2, y2), d)
+    cur_pos = V(0, 0)
+    cur_wp = V(10, -1)
+    for a, v in ins:
+        if hasattr(Dir, a):
+            cur_wp += Dir[a].value*v
+        if a == "F":
+            cur_pos += cur_wp*v
+        if a == "R":
+            cur_wp = cur_wp.turn(v // 90)
+        if a == "L":
+            cur_wp = cur_wp.turn(-(v // 90))
+        # print(f"{a}{v} -> {cur_pos} ({cur_d})")
 
+    print(V(0, 0).dist(cur_pos))
 
-def line(pos, dir, limits):
-    x, y = pos
-    xd, yd = dir
-    i = 1
-    while True:
-        x2 = x+xd*i
-        y2 = y+yd*i
-        if x2 < 0 or x2 > limits[0]:
-            break
-        if y2 < 0 or y2 > limits[1]:
-            break
-        yield (x2, y2)
-        i += 1
-
-
-def inv(d):
-    xd, yd = d
-    return (-xd, -yd)
-
-
-def add(p, d):
-    return tuple(v1+v2 for v1, v2 in zip(p, d))
-
-
-def sub(p1, p2):
-    return tuple(v1-v2 for v1, v2 in zip(p1, p2))
-
-
-def dist(p1, p2):
-    return sum(abs(v1 - v2) for (v1, v2) in zip(p1, p2))
+    
+if __name__ == "__main__":
+    main()
