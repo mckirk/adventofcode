@@ -16,7 +16,7 @@ spec = """{w}
 [{key:w} = ({L:w}, {R:w})|\n]"""
 
 def main():
-    d, nodes = parse(input, spec)
+    d, nodes = parse(spec, input)
 
     start = set()
 

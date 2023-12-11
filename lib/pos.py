@@ -9,32 +9,32 @@ class V:
 
     def __add__(self, other):
         return V(self.x + other.x, self.y + other.y)
-    
+
     def __sub__(self, other):
         return V(self.x - other.x, self.y - other.y)
-    
+
     def __mul__(self, other):
         return V(self.x * other, self.y * other)
-    
+
     def __rmul__(self, other) -> "V":
         return self * other
-    
+
     def __floordiv__(self, other):
         return V(self.x // other, self.y // other)
-    
+
     def __neg__(self):
         return V(-self.x, -self.y)
-    
+
     def __abs__(self):
         return V(abs(self.x), abs(self.y))
-    
+
     def __iter__(self):
         yield self.x
         yield self.y
-    
+
     def within(self, limits):
         return 0 <= self.x < limits[0] and 0 <= self.y < limits[1]
-    
+
     def dist(self, other):
         return sum(abs(self - other))
 
@@ -66,7 +66,6 @@ class V:
         raise ValueError(turns_right)
 
 
-
 class Dir(Enum):
     N = V(0, -1)
     NE = V(1, -1)
@@ -86,7 +85,7 @@ class Dir(Enum):
             self.S: 4,
             self.SW: 5,
             self.W: 6,
-            self.NW: 7
+            self.NW: 7,
         }
         assert (degrees_right // 45) * 45 == degrees_right
         cur = transl[self]
@@ -117,8 +116,8 @@ def line(pos, dir, limits):
     xd, yd = dir
     i = 1
     while True:
-        x2 = x+xd*i
-        y2 = y+yd*i
+        x2 = x + xd * i
+        y2 = y + yd * i
         if x2 < 0 or x2 > limits[0]:
             break
         if y2 < 0 or y2 > limits[1]:
@@ -133,11 +132,11 @@ def inv(d):
 
 
 def add(p, d):
-    return tuple(v1+v2 for v1, v2 in zip(p, d))
+    return tuple(v1 + v2 for v1, v2 in zip(p, d))
 
 
 def sub(p1, p2):
-    return tuple(v1-v2 for v1, v2 in zip(p1, p2))
+    return tuple(v1 - v2 for v1, v2 in zip(p1, p2))
 
 
 def dist(p1, p2):

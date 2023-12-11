@@ -12,7 +12,7 @@ spec = "[{i}|\n]"
 
 
 def main():
-    ns = parse(input, spec)
+    ns = parse(spec, input)
 
     ns.sort()
 
