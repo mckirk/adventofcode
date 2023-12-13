@@ -23,9 +23,7 @@ input_file = Path(__file__).parent / "input.txt"
 # input_file = Path(__file__).parent / "sample1.txt"
 input = input_file.read_text().strip()
 lines = input.splitlines()
-
-spec = \"""\\
-\"""
+blocks = input.split("\\n\\n")
 
 def main():
     pass

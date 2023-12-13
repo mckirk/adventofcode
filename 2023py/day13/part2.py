@@ -1,20 +1,10 @@
+#!/usr/bin/env python3
+from collections import defaultdict, Counter
+from pathlib import Path
+from pprint import pprint
 from abc import ABC, abstractmethod
 from typing import Iterable
 import colored
-
-
-def get_limits(lines):
-    return (len(lines[0]), len(lines))
-
-
-def get_pos(lines, look_for):
-    pos = set()
-    for y, l in enumerate(lines):
-        for x, c in enumerate(l):
-            if c == look_for:
-                pos.add((x, y))
-
-    return pos
 
 
 class Board(ABC):
@@ -74,35 +64,33 @@ class ListBoard(Board):
         return None
 
 
-class DictBoard(Board):
-    def __init__(self, board: dict[tuple, str], fill: str):
-        self.board = board
-        self.fill = fill
-        self.limits = (max(x + 1 for x, y in board), max(y + 1 for x, y in board))
-
-    def by_lines(self):
-        xl, yl = self.limits
-        for y in range(yl):
-            l = ""
-            for x in range(xl):
-                l += self.board.get((x, y), self.fill)
-            yield l
-
-    def to_list(self):
-        return list(self.by_lines())
-
-    def find(self, e):
-        for p, c in self.board.items():
-            if c == e:
-                return p
-
-        return None
-
-    def find_all(self, e):
-        for p, c in self.board.items():
-            if c == e:
-                yield p
-
-
 def transpose(lines):
     return ["".join(l) for l in zip(*lines)]
+
+
+input_file = Path(__file__).parent / "input.txt"
+# input_file = Path(__file__).parent / "sample2.txt"
+input = input_file.read_text().strip()
+lines = input.splitlines()
+blocks = input.split("\n\n")
+
+def main():
+    res = 0
+    for b in blocks:
+        lines = b.splitlines()
+        board = ListBoard(lines)
+        board_transp = ListBoard(transpose(lines))
+
+        reflection_y = board.find_reflection_y(1)
+        if reflection_y:
+            res += 100*reflection_y
+        else:
+            reflection_x = board_transp.find_reflection_y(1)
+            assert reflection_x
+            res += reflection_x
+
+    print(res)
+
+    
+if __name__ == "__main__":
+    main()
