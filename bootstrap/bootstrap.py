@@ -37,6 +37,9 @@ TIME_LEFT_REGEX = re.compile(r"You have ((?P<min>\d+)m )?((?P<sec>\d+)s )?left")
 
 BAD_INPUT = "Please don't repeatedly request this endpoint before it unlocks!"
 
+PART1_DONE = "The first half of this puzzle is complete! It provides one gold star: *"
+PART2_DONE = "Both parts of this puzzle are complete! They provide two gold stars: **"
+
 
 class Config(BaseModel):
     session: str
@@ -102,6 +105,8 @@ class AdventDay:
                 "User-Agent": "advent_bootstrap/0.0.1 (+https://github.com/mckirk/adventofcode)",
             }
         )
+
+        self.parts_left = [1, 2]
 
     def create_structure_part1(self):
         print(f"Creating directory {self.day_dir}...")
@@ -192,6 +197,13 @@ class AdventDay:
                 f"https://adventofcode.com/{self.year}/day/{self.day}"
             ).text
             return convert_html_to_markdown(re.findall(DESC_REGEX, text, re.DOTALL)[0])
+        
+        desc = get_description()
+
+        if PART1_DONE in desc:
+            self.parts_left = [2]
+        if PART2_DONE in desc:
+            self.parts_left = []
 
         self.description_path.write_text(get_description())
 
@@ -252,7 +264,7 @@ class AdventDay:
             raise Exception("Could not interpret the submission result")
 
     def submit_answers_until_correct(self):
-        for part in [1, 2]:
+        for part in self.parts_left:
             if part == 2:
                 self.create_structure_part2()
                 self.update_stats(1)
@@ -305,6 +317,11 @@ def main():
     advent_day.wait_until_6am()
     advent_day.update_stats(0)
     advent_day.fetch_description()
+
+    if not advent_day.parts_left:
+        print(f"Already solved!")
+        return
+
     advent_day.fetch_input()
     advent_day.start_editor()
     advent_day.submit_answers_until_correct()
