@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+from collections import defaultdict, Counter
+from functools import cache
+from pathlib import Path
+from pprint import pprint
+from abc import ABC, abstractmethod
+from typing import Iterable
 from dataclasses import dataclass
 from enum import Enum
 
@@ -71,14 +78,20 @@ class V:
     @property
     def tuple(self):
         return (self.x, self.y)
-    
-    def line(self, dir, limits):
-        p2 = self
-        while True:
-            p2 += dir
-            if not p2.within(limits):
-                break
-            yield p2
+
+
+def get_limits(lines):
+    return (len(lines[0]), len(lines))
+
+
+def get_pos(lines, look_for):
+    pos = set()
+    for y, l in enumerate(lines):
+        for x, c in enumerate(l):
+            if c == look_for:
+                pos.add((x, y))
+
+    return pos
 
 
 class Dir(Enum):
@@ -91,30 +104,6 @@ class Dir(Enum):
     W = V(-1, 0)
     NW = V(-1, -1)
 
-    def turn(self, degrees_right):
-        transl = {
-            self.N: 0,
-            self.NE: 1,
-            self.E: 2,
-            self.SE: 3,
-            self.S: 4,
-            self.SW: 5,
-            self.W: 6,
-            self.NW: 7,
-        }
-        assert (degrees_right // 45) * 45 == degrees_right
-        cur = transl[self]
-        new = (cur + degrees_right // 45) % 8
-        return list(transl.keys())[new]
-
-
-def directions():
-    for xd in [-1, 0, 1]:
-        for yd in [-1, 0, 1]:
-            if xd == yd == 0:
-                continue
-            yield V(xd, yd)
-
 
 def get_positions(lines, look_for):
     pos = set()
@@ -124,3 +113,58 @@ def get_positions(lines, look_for):
                 pos.add(V(x, y))
 
     return pos
+
+
+def transpose(lines):
+    return ["".join(l) for l in zip(*lines)]
+
+
+input_file = Path(__file__).parent / "input.txt"
+# input_file = Path(__file__).parent / "sample2.txt"
+input = input_file.read_text().strip()
+lines = input.splitlines()
+blocks = input.split("\n\n")
+
+def main():
+    limits = get_limits(lines)
+    movable, immovable = frozenset(get_positions(lines, "O")), frozenset(get_positions(lines, "#"))
+    seen = dict()
+
+    LIMIT = 1000000000
+    for i in range(LIMIT):
+        h = movable
+        if h in seen:
+            loop_size = i - seen[h]
+            if (LIMIT-i)%loop_size == 0:
+                print(f"Found loop at {i} with size {loop_size}!")
+                break
+        else:
+            seen[h] = i
+        
+        for d in [Dir.N, Dir.W, Dir.S, Dir.E]:
+            while True:
+                new_movable = set()
+                
+                pos_candidates = sorted(movable, key=lambda p: -p.dot(d.value))
+                for p in pos_candidates:
+                    new_v = p+d.value
+                    if not new_v.within(limits) or new_v in new_movable or new_v in immovable:
+                        new_movable.add(p)
+                    else:
+                        new_movable.add(new_v)
+                
+                frozen = frozenset(new_movable)
+                if frozen == movable:
+                    break
+                movable = frozen
+
+        # dict_board.pprint({})
+        # print("#"*20)
+
+    res = 0
+    for p in movable:
+        res += limits[1]-p.y
+    print(i, res)
+    
+if __name__ == "__main__":
+    main()
