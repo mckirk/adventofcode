@@ -30,13 +30,13 @@ def main():
     boxes: defaultdict[int, dict] = defaultdict(dict)
     for i in ins:
         if i.set:
-            h = hash1(i.set['n'])
-            boxes[h][i.set['n']] = i.set['v']
-            # print(f"After {i.set['n']}={i.set['v']}:")
+            h = hash1(i.n)
+            boxes[h][i.n] = i.set.v
+            # print(f"After {i.n}={i.set.v}:")
         elif i.minus:
-            h = hash1(i.minus['n'])
-            boxes[h].pop(i.minus['n'], None)
-            # print(f"After {i.minus['n']}-:")
+            h = hash1(i.n)
+            boxes[h].pop(i.n, None)
+            # print(f"After {i.n}-:")
         # print_boxes(boxes)
         # print()
 
