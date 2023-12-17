@@ -1,6 +1,8 @@
+from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, Optional, TypeVar, Callable
+from typing import Any, Generic, Iterable, Optional, TypeVar, Callable
 import heapq
 from typing import Generic, TypeVar
 
@@ -156,3 +158,45 @@ class Dir(Enum):
         cur = transl[self]
         new = (cur + degrees_right // 45) % 8
         return list(transl.keys())[new]
+
+
+class AStarState(ABC):
+    @abstractmethod
+    def incurred_cost(self):
+        ...
+
+    @abstractmethod
+    def estimated_cost(self):
+        ...
+
+    @abstractmethod
+    def is_goal(self) -> bool:
+        ...
+
+    @abstractmethod
+    def next_states(self) -> Iterable["AStarState"]:
+        ...
+
+    def __lt__(self, other: "AStarState"):
+        return (
+            self.incurred_cost() + self.estimated_cost()
+            < other.incurred_cost() + other.estimated_cost()
+        )
+
+
+def a_star(start_states):
+    to_do: PriorityQueue[AStarState] = PriorityQueue()
+    for start_state in start_states:
+        to_do.put(start_state)
+
+    best_cost = defaultdict(Min)
+
+    while not to_do.empty():
+        cur = to_do.get()
+
+        if cur.is_goal():
+            return cur
+
+        for next_state in cur.next_states():
+            if best_cost[next_state].update(next_state.incurred_cost()):
+                to_do.put(next_state)
