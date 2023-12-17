@@ -19,6 +19,8 @@ from pathlib import Path
 from pprint import pprint
 from aocparser import parse
 
+from lib import *
+
 input_file = Path(__file__).parent / "input.txt"
 # input_file = Path(__file__).parent / "sample1.txt"
 input = input_file.read_text().strip()
@@ -90,6 +92,7 @@ class AdventDay:
 
         self.part1_path = Path(self.day_dir) / "part1.py"
         self.part2_path = Path(self.day_dir) / "part2.py"
+        self.lib_path = Path(self.day_dir) / "lib.py"
         self.input_path = Path(self.day_dir) / "input.txt"
         self.sample1_path = Path(self.day_dir) / "sample1.txt"
         self.sample2_path = Path(self.day_dir) / "sample2.txt"
@@ -120,6 +123,10 @@ class AdventDay:
         if not self.sample1_path.exists():
             print(f"Creating sample.txt...")
             self.sample1_path.touch(exist_ok=False)
+
+        if not self.lib_path.exists():
+            print(f"Creating lib.py...")
+            self.lib_path.touch(exist_ok=False)
 
     def create_structure_part2(self):
         # update description for part 2
@@ -216,6 +223,7 @@ class AdventDay:
                 str(self.day_dir),
                 str(self.description_path),
                 str(self.part1_path),
+                str(self.lib_path),
                 str(self.sample1_path),
             ]
         )
