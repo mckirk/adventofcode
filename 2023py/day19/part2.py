@@ -15,7 +15,7 @@ blocks = input.split("\n\n")
 spec = """\
 [{key:w}`{[<more:{var:w}`>{v:i}:{dst:w}|less:{var:w}`<{v:i}:{dst:w}|otherwise:{dst:w}>|,]`}|\n]
 
-[`{[{key:w}={v:i}|,]`}|\n]"""
+[`{[{key:w}={i}|,]`}|\n]"""
 
 
 def main():
@@ -27,13 +27,11 @@ def main():
         if workflow == "R":
             return []
 
-        instructions = rules[workflow][1]
-
         cur_ranges = dict(rating_ranges)
 
         accepted = []
 
-        for ins in instructions:
+        for ins in rules[workflow]:
             if ins.otherwise:
                 accepted += accepted_ranges(cur_ranges, ins.dst)
                 return accepted

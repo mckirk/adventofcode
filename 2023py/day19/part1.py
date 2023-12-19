@@ -15,7 +15,7 @@ blocks = input.split("\n\n")
 spec = """\
 [{key:w}`{[<more:{var:w}`>{v:i}:{dst:w}|less:{var:w}`<{v:i}:{dst:w}|otherwise:{dst:w}>|,]`}|\n]
 
-[`{[{key:w}={v:i}|,]`}|\n]"""
+[`{[{key:w}={i}|,]`}|\n]"""
 
 
 def main():
@@ -27,12 +27,10 @@ def main():
         if workflow == "R":
             return False
 
-        instructions = rules[workflow][1]
-
-        for ins in instructions:
-            if ins.less and rating[ins.less.var].v < ins.less.v:
+        for ins in rules[workflow]:
+            if ins.less and rating[ins.less.var] < ins.less.v:
                 return is_accepted(rating, ins.dst)
-            if ins.more and rating[ins.more.var].v > ins.more.v:
+            if ins.more and rating[ins.more.var] > ins.more.v:
                 return is_accepted(rating, ins.dst)
             if ins.otherwise:
                 return is_accepted(rating, ins.dst)
@@ -40,7 +38,7 @@ def main():
     res = 0
     for r in ratings:
         if is_accepted(r, "in"):
-            res += sum(x.v for x in r.values())
+            res += sum(r.values())
 
     print(res)
 
