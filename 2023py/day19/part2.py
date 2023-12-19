@@ -18,6 +18,9 @@ spec = """\
 [`{[{key:w}={i}|,]`}|\n]"""
 
 
+FULL_RANGE = Range(1, 4001)
+
+
 def main():
     rules, ratings = parse(spec, input)
 
@@ -37,13 +40,11 @@ def main():
                 return accepted
 
             if ins.less:
-                range_yes = Range(1, ins.less.v)
-                range_no = Range(ins.less.v, 4001)
+                range_yes, range_no = FULL_RANGE.split(ins.less.v)
                 var = ins.less.var
 
             if ins.more:
-                range_yes = Range(ins.more.v + 1, 4001)
-                range_no = Range(1, ins.more.v + 1)
+                range_no, range_yes = FULL_RANGE.split(ins.more.v + 1)
                 var = ins.more.var
 
             range_yes = cur_ranges[var].intersect(range_yes)
@@ -61,7 +62,7 @@ def main():
 
         assert False
 
-    ranges = accepted_ranges({c: Range(1, 4001) for c in "xmas"}, "in")
+    ranges = accepted_ranges({c: FULL_RANGE for c in "xmas"}, "in")
     res = 0
     for rv in ranges:
         this = 1
