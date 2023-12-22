@@ -80,6 +80,15 @@ class V:
                 break
             yield p2
 
+    def tiled(self, limits):
+        return V(self.x % limits[0], self.y % limits[1])
+    
+    def tile(self, limits):
+        return V(self.x // limits[0], self.y // limits[1])
+    
+    def elem_mul(self, other):
+        return V(self.x * other.x, self.y * other.y)
+
 
 class Dir(Enum):
     N = V(0, -1)
