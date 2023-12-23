@@ -15,6 +15,9 @@ class AStarState(ABC):
     def estimated_cost(self):
         ...
 
+    def cost(self):
+        return self.incurred_cost() + self.estimated_cost()
+
     @abstractmethod
     def is_goal(self) -> bool:
         ...
@@ -24,10 +27,7 @@ class AStarState(ABC):
         ...
 
     def __lt__(self, other: "AStarState"):
-        return (
-            self.incurred_cost() + self.estimated_cost()
-            < other.incurred_cost() + other.estimated_cost()
-        )
+        return self.cost() < other.cost()
 
 
 def a_star(start_states):
