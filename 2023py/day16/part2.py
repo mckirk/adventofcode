@@ -84,6 +84,28 @@ class V:
                 break
             yield p2
 
+    def deflect(self, plane):
+        assert plane in "\\/"
+
+        if plane == "/":
+            i, o = V(1, 0), V(0, -1)
+        else:
+            i, o = V(1, 0), V(0, 1)
+
+        if self == i:
+            return o
+        
+        if self == o:
+            return i
+        
+        if self == -i:
+            return -o
+        
+        if self == -o:
+            return -i
+        
+        raise ValueError(self)
+
 
 class Dir(Enum):
     N = V(0, -1)
@@ -130,7 +152,7 @@ def get_positions(lines, look_for):
     return pos
 
 input_file = Path(__file__).parent / "input.txt"
-# input_file = Path(__file__).parent / "sample2.txt"
+input_file = Path(__file__).parent / "sample2.txt"
 input = input_file.read_text().strip()
 lines = input.splitlines()
 blocks = input.split("\n\n")
@@ -176,28 +198,8 @@ def main():
 
             # print(f"Doing {pos} {dir}, nc {nc}")
 
-            if nc == "/":
-                if dir == V(1, 0):
-                    maybe_add(V(0, -1))
-                elif dir == V(0, 1):
-                    maybe_add(V(-1, 0))
-                elif dir == V(-1, 0):
-                    maybe_add(V(0, 1))
-                elif dir == V(0, -1):
-                    maybe_add(V(1, 0))
-                else:
-                    raise ValueError(dir)
-            elif nc == "\\":
-                if dir == V(1, 0):
-                    maybe_add(V(0, 1))
-                elif dir == V(0, 1):
-                    maybe_add(V(1, 0))
-                elif dir == V(-1, 0):
-                    maybe_add(V(0, -1))
-                elif dir == V(0, -1):
-                    maybe_add(V(-1, 0))
-                else:
-                    raise ValueError(dir)
+            if nc in "/\\":
+                maybe_add(dir.deflect(nc))
             elif nc == "-":
                 if dir.y != 0:
                     maybe_add(V(1, 0))
