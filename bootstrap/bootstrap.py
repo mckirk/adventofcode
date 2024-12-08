@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 import re
+import shutil
 import time
 import html2text
 from pydantic import BaseModel
@@ -12,27 +13,6 @@ import pytz
 import requests
 from tenacity import retry, stop_after_attempt, wait_random
 import subprocess
-
-TEMPLATE = """#!/usr/bin/env python3
-from collections import defaultdict, Counter
-from pathlib import Path
-from pprint import pprint
-from aocparser import parse
-
-from lib import *
-
-input_file = Path(__file__).parent / "input.txt"
-# input_file = Path(__file__).parent / "sample1.txt"
-input = input_file.read_text().strip()
-lines = input.splitlines()
-blocks = input.split("\\n\\n")
-
-def main():
-    pass
-    
-if __name__ == "__main__":
-    main()
-"""
 
 DESC_REGEX = r"<main>(.*)</main>"
 TIME_LEFT_REGEX = re.compile(r"You have ((?P<min>\d+)m )?((?P<sec>\d+)s )?left")
@@ -83,12 +63,45 @@ def convert_html_to_markdown(html):
     return markdown
 
 
+def copy_directory_without_overwrite(src_dir: Path, dest_dir: Path):
+    """
+    Copies contents from src_dir to dest_dir without overwriting existing files.
+
+    :param src_dir: Path to the source directory.
+    :param dest_dir: Path to the destination directory.
+    """
+    if not src_dir.is_dir():
+        raise FileNotFoundError(f"Source directory '{src_dir}' does not exist.")
+
+    # Create destination directory if it doesn't exist
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    for src_item in src_dir.rglob('*'):
+        # Compute the relative path from the source directory
+        relative_path = src_item.relative_to(src_dir)
+        target_path = dest_dir / relative_path
+
+        if src_item.is_dir():
+            # Create subdirectories in destination
+            target_path.mkdir(parents=True, exist_ok=True)
+        elif src_item.is_file():
+            if not target_path.exists():
+                # Ensure the parent directory exists
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_item, target_path)
+                print(f"Copied: {src_item} -> {target_path}")
+            else:
+                print(f"Skipped (already exists): {target_path}")
+
+
 class AdventDay:
     def __init__(self, day: int, year: int):
         self.day = day
         self.year = year
 
         self.day_dir = script_dir.parent / f"{year}py" / f"day{day:02d}"
+
+        self.template_dir = script_dir / "templates" / "py"
 
         self.part1_path = Path(self.day_dir) / "part1.py"
         self.part2_path = Path(self.day_dir) / "part2.py"
@@ -115,10 +128,12 @@ class AdventDay:
         print(f"Creating directory {self.day_dir}...")
         self.day_dir.mkdir(exist_ok=True, parents=True)
 
+        if self.template_dir.is_dir():
+            copy_directory_without_overwrite(self.template_dir, self.day_dir)
+
         if not self.part1_path.exists():
             print(f"Creating part1.py...")
             self.part1_path.touch(exist_ok=False)
-            self.part1_path.write_text(TEMPLATE)
 
         if not self.sample1_path.exists():
             print(f"Creating sample.txt...")
@@ -221,10 +236,10 @@ class AdventDay:
                 "code",
                 "-n",
                 str(self.day_dir),
-                str(self.description_path),
                 str(self.part1_path),
                 str(self.lib_path),
                 str(self.sample1_path),
+                str(self.description_path),
             ]
         )
 
