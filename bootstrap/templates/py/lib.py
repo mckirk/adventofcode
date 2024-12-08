@@ -25,6 +25,16 @@ class Input:
     @property
     def exists(self):
         return bool(self.content)
+    
+    @property
+    def limits(self):
+        return (len(self.lines[0]), len(self.lines))
+    
+    @property
+    def as_pos(self):
+        for y, l in enumerate(self.lines):
+            for x, c in enumerate(l):
+                yield (x, y), c
 
 
 problem_input = Input(script_dir / "input.txt")
