@@ -76,7 +76,7 @@ def copy_directory_without_overwrite(src_dir: Path, dest_dir: Path):
     # Create destination directory if it doesn't exist
     dest_dir.mkdir(parents=True, exist_ok=True)
 
-    for src_item in src_dir.rglob('*'):
+    for src_item in src_dir.rglob("*"):
         # Compute the relative path from the source directory
         relative_path = src_item.relative_to(src_dir)
         target_path = dest_dir / relative_path
@@ -108,7 +108,6 @@ class AdventDay:
         self.lib_path = Path(self.day_dir) / "lib.py"
         self.input_path = Path(self.day_dir) / "input.txt"
         self.sample1_path = Path(self.day_dir) / "sample1.txt"
-        self.sample2_path = Path(self.day_dir) / "sample2.txt"
         self.description_path = Path(self.day_dir) / "description.md"
         self.stats_path = Path(self.day_dir) / "stats.json"
 
@@ -151,14 +150,7 @@ class AdventDay:
         if not self.part2_path.exists():
             print(f"Creating part2.py...")
             self.part2_path.touch(exist_ok=False)
-            self.part2_path.write_text(
-                self.part1_path.read_text().replace("sample1.txt", "sample2.txt")
-            )
-
-        if not self.sample2_path.exists():
-            print(f"Creating sample2.txt...")
-            self.sample2_path.touch(exist_ok=False)
-            self.sample2_path.write_text(self.sample1_path.read_text())
+            self.part2_path.write_text(self.part1_path.read_text())
 
     def wait_until_6am(self):
         wait_until = datetime(self.year, 12, self.day, 6, 0, 0, 0, tzinfo=tz)
@@ -185,10 +177,9 @@ class AdventDay:
             elif step == 2 and stats.part2 is None:
                 stats.part2 = datetime.now(tz) - stats.started
                 changed = True
-            
+
             if changed:
                 self.stats_path.write_text(stats.model_dump_json(indent=2))
-
 
     def fetch_input(self):
         if self.input_path.exists():
@@ -219,7 +210,7 @@ class AdventDay:
                 f"https://adventofcode.com/{self.year}/day/{self.day}"
             ).text
             return convert_html_to_markdown(re.findall(DESC_REGEX, text, re.DOTALL)[0])
-        
+
         desc = get_description()
 
         if PART1_DONE in desc:
@@ -271,7 +262,7 @@ class AdventDay:
             response = SubmissionResponse.INCORRECT
         elif "You don't seem to be solving the right level." in content:
             response = SubmissionResponse.ALREADY_SOLVED
-        
+
         if response is not None:
             self.solution_cache[(part, answer)] = response
             return response, None
@@ -325,6 +316,7 @@ class AdventDay:
 
         # update description to include solution
         self.fetch_description()
+
 
 def main():
     parser = create_argparser()

@@ -1,4 +1,6 @@
 from pathlib import Path
+from typing import Any
+from collections import defaultdict, Counter
 
 import aocparser
 
@@ -38,14 +40,15 @@ class Input:
 
 
 problem_input = Input(script_dir / "input.txt")
-sample1_input = Input(script_dir / "sample1.txt")
-sample2_input = Input(script_dir / "sample2.txt")
+def get_sample_input(idx: int):
+    return Input(script_dir / f"sample{idx}.txt")
 
 
-def run_on_inputs(sample1_expected, sample2_expected, run):
-    for i, (inp, exp) in enumerate(
-        [(sample1_input, sample1_expected), (sample2_input, sample2_expected)], start=1
-    ):
+def run_on_inputs(run, expected_sample_results: dict[int, Any] = None):
+    expected_sample_results = expected_sample_results or dict()
+    
+    for i, exp in expected_sample_results.items():
+        inp = get_sample_input(i)
         if inp.exists:
             res = run(inp)
             print(f"Sample {i}: {res}")

@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-from collections import defaultdict, Counter
 
 from lib import *
-
-sample1_expected = None
-sample2_expected = None
 
 
 def run(inp: Input):
@@ -12,7 +8,7 @@ def run(inp: Input):
 
 
 def main():
-    run_on_inputs(sample1_expected, sample2_expected, run)
+    run_on_inputs(run, {1: None})
 
 
 if __name__ == "__main__":
