@@ -44,13 +44,16 @@ def get_sample_input(idx: int):
     return Input(script_dir / f"sample{idx}.txt")
 
 
-def run_on_inputs(run, expected_sample_results: dict[int, Any] = None):
+def run_on_inputs(run, expected_sample_results: dict[int, Any] = None, **kwargs):
     expected_sample_results = expected_sample_results or dict()
+
+    def get_run_args(key):
+        return {k: d.get(key) for k, d in kwargs.items()}
     
     for i, exp in expected_sample_results.items():
         inp = get_sample_input(i)
         if inp.exists:
-            res = run(inp)
+            res = run(inp, **get_run_args(i))
             print(f"Sample {i}: {res}")
             if exp is not None and res != exp:
                 print(
@@ -58,5 +61,5 @@ def run_on_inputs(run, expected_sample_results: dict[int, Any] = None):
                 )
                 return
 
-    res = run(problem_input)
+    res = run(problem_input, **get_run_args(None))
     print(f"Result: {res}")
