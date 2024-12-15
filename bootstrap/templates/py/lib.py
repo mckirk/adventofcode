@@ -9,29 +9,38 @@ spec_file = script_dir / "spec.aocp"
 
 
 class Input:
-    def __init__(self, path: Path):
-        self.path = path
-        if not path.is_file():
-            self.content = None
+    def __init__(self, content: str | None):
+        self.content = content
+
+        if not content:
             return
 
-        self.content = path.read_text().strip()
         self.lines = self.content.splitlines()
-        self.blocks = self.content.split(r"\n\n")
+        self.blocks = [Input(b) for b in self.content.split("\n\n")]
 
         if spec_file.is_file() and (spec := spec_file.read_text()):
-            self.parsed = aocparser.parse(spec, self.content)
+            try:
+                self.parsed = aocparser.parse(spec, self.content)
+            except:
+                self.parsed = None
         else:
             self.parsed = None
+
+    @classmethod
+    def from_file(cls, path: Path):
+        if not path.is_file():
+            return cls(None)
+        else:
+            return cls(path.read_text().strip())
 
     @property
     def exists(self):
         return bool(self.content)
-    
+
     @property
     def limits(self):
         return (len(self.lines[0]), len(self.lines))
-    
+
     @property
     def as_pos(self):
         for y, l in enumerate(self.lines):
@@ -39,9 +48,11 @@ class Input:
                 yield (x, y), c
 
 
-problem_input = Input(script_dir / "input.txt")
+problem_input = Input.from_file(script_dir / "input.txt")
+
+
 def get_sample_input(idx: int):
-    return Input(script_dir / f"sample{idx}.txt")
+    return Input.from_file(script_dir / f"sample{idx}.txt")
 
 
 def run_on_inputs(run, expected_sample_results: dict[int, Any] = None, **kwargs):
@@ -49,7 +60,7 @@ def run_on_inputs(run, expected_sample_results: dict[int, Any] = None, **kwargs)
 
     def get_run_args(key):
         return {k: d.get(key) for k, d in kwargs.items()}
-    
+
     for i, exp in expected_sample_results.items():
         inp = get_sample_input(i)
         if inp.exists:
