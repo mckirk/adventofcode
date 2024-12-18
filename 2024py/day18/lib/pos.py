@@ -1,81 +1,3 @@
-from pathlib import Path
-from typing import Any, Optional
-from collections import defaultdict, Counter
-
-import aocparser
-
-script_dir = Path(__file__).parent
-default_spec_name = "spec.aocp"
-
-
-class Input:
-    def __init__(self, content: Optional[str], spec_name: str = None):
-        self.content = content
-
-        if not content:
-            return
-
-        self.lines = self.content.splitlines()
-        self.blocks = self.content.split("\n\n")
-
-        if (
-            spec_name
-            and (spec_file := script_dir / spec_name).is_file()
-            and (spec := spec_file.read_text())
-        ):
-            self.parsed = aocparser.parse(spec, self.content)
-        else:
-            self.parsed = None
-
-    @classmethod
-    def from_file(cls, path: Path, spec_name: str = None):
-        if not path.is_file():
-            return cls(None)
-        else:
-            return cls(path.read_text().strip(), spec_name)
-
-    @property
-    def exists(self):
-        return bool(self.content)
-
-    @property
-    def limits(self):
-        return (len(self.lines[0]), len(self.lines))
-
-    @property
-    def as_pos(self):
-        for y, l in enumerate(self.lines):
-            for x, c in enumerate(l):
-                yield (x, y), c
-
-
-problem_input = Input.from_file(script_dir / "input.txt", default_spec_name)
-
-
-def get_sample_input(idx: int):
-    return Input.from_file(script_dir / f"sample{idx}.txt", default_spec_name)
-
-
-def run_on_inputs(run, expected_sample_results: dict[int, Any] = None, **kwargs):
-    expected_sample_results = expected_sample_results or dict()
-
-    def get_run_args(key):
-        return {k: d.get(key) for k, d in kwargs.items()}
-
-    for i, exp in expected_sample_results.items():
-        inp = get_sample_input(i)
-        if inp.exists:
-            res = run(inp, **get_run_args(i))
-            print(f"Sample {i}: {res}")
-            if exp is not None and res != exp:
-                print(
-                    f"Did not match expected result for sample {i} ({exp}), aborting."
-                )
-                return
-
-    res = run(problem_input, **get_run_args(None))
-    print(f"Result: {res}")
-
 from dataclasses import dataclass
 from enum import Enum
 
@@ -117,15 +39,17 @@ class V:
         return sum(abs(self - other))
 
     @classmethod
-    def directions(cls):
+    def directions(cls, diagonal=False):
         for xd in [-1, 0, 1]:
             for yd in [-1, 0, 1]:
                 if xd == yd == 0:
                     continue
+                if not diagonal and xd != 0 and yd != 0:
+                    continue
                 yield cls(xd, yd)
 
-    def adj(self, limits):
-        for d in self.directions():
+    def adj(self, *, limits: tuple[int, int], diagonal: bool):
+        for d in self.directions(diagonal):
             p2 = self + d
             if p2.within(limits):
                 yield p2, d
@@ -142,14 +66,14 @@ class V:
         if turns_right == 3:
             return V(self.y, -self.x)
         raise ValueError(turns_right)
-    
+
     def dot(self, other):
         return self.x * other.x + self.y * other.y
-    
+
     @property
     def tuple(self):
         return (self.x, self.y)
-    
+
     def line(self, dir, limits):
         p2 = self
         while True:
@@ -160,10 +84,10 @@ class V:
 
     def tiled(self, limits):
         return V(self.x % limits[0], self.y % limits[1])
-    
+
     def tile(self, limits):
         return V(self.x // limits[0], self.y // limits[1])
-    
+
     def elem_mul(self, other):
         return V(self.x * other.x, self.y * other.y)
 
@@ -193,14 +117,6 @@ class Dir(Enum):
         cur = transl[self]
         new = (cur + degrees_right // 45) % 8
         return list(transl.keys())[new]
-
-
-def directions():
-    for xd in [-1, 0, 1]:
-        for yd in [-1, 0, 1]:
-            if xd == yd == 0:
-                continue
-            yield V(xd, yd)
 
 
 def get_positions(lines, look_for):
