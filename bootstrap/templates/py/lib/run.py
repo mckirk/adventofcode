@@ -1,15 +1,15 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from collections import defaultdict, Counter
 
 import aocparser
 
-script_dir = Path(__file__).parent
+script_dir = Path(__file__).parent.parent
 default_spec_name = "spec.aocp"
 
 
 class Input:
-    def __init__(self, content: str | None, spec_name: str = None):
+    def __init__(self, content: Optional[str], spec_name: str = None):
         self.content = content
 
         if not content:

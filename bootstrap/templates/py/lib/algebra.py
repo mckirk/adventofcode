@@ -11,7 +11,6 @@ def lcmm(*args):
 
 
 def mul_inv(a, b):
-    """https://rosettacode.org/wiki/Chinese_remainder_theorem#Python_3.6"""
     b0 = b
     x0, x1 = 0, 1
     if b == 1:
@@ -26,9 +25,6 @@ def mul_inv(a, b):
 
 
 def crt(a, n):
-    """Chinese Remainder Theorem
-    https://rosettacode.org/wiki/Chinese_remainder_theorem#Python_3.6
-    """
     s = 0
     prod = 1
     for n_i in n:

@@ -37,8 +37,12 @@ class Range:
         if not intersect:
             return None, self, other
 
-        non_intersect1 = Range(self.start, intersect.start) if intersect.start > self.start else None
-        non_intersect2 = Range(intersect.end, self.end) if intersect.end < self.end else None
+        non_intersect1 = (
+            Range(self.start, intersect.start) if intersect.start > self.start else None
+        )
+        non_intersect2 = (
+            Range(intersect.end, self.end) if intersect.end < self.end else None
+        )
 
         return intersect, non_intersect1, non_intersect2
 

@@ -39,15 +39,17 @@ class V:
         return sum(abs(self - other))
 
     @classmethod
-    def directions(cls):
+    def directions(cls, diagonal=False):
         for xd in [-1, 0, 1]:
             for yd in [-1, 0, 1]:
                 if xd == yd == 0:
                     continue
+                if not diagonal and xd != 0 and yd != 0:
+                    continue
                 yield cls(xd, yd)
 
-    def adj(self, limits):
-        for d in self.directions():
+    def adj(self, *, limits: tuple[int, int], diagonal: bool):
+        for d in self.directions(diagonal):
             p2 = self + d
             if p2.within(limits):
                 yield p2, d
@@ -64,14 +66,14 @@ class V:
         if turns_right == 3:
             return V(self.y, -self.x)
         raise ValueError(turns_right)
-    
+
     def dot(self, other):
         return self.x * other.x + self.y * other.y
-    
+
     @property
     def tuple(self):
         return (self.x, self.y)
-    
+
     def line(self, dir, limits):
         p2 = self
         while True:
@@ -82,10 +84,10 @@ class V:
 
     def tiled(self, limits):
         return V(self.x % limits[0], self.y % limits[1])
-    
+
     def tile(self, limits):
         return V(self.x // limits[0], self.y // limits[1])
-    
+
     def elem_mul(self, other):
         return V(self.x * other.x, self.y * other.y)
 
@@ -115,14 +117,6 @@ class Dir(Enum):
         cur = transl[self]
         new = (cur + degrees_right // 45) % 8
         return list(transl.keys())[new]
-
-
-def directions():
-    for xd in [-1, 0, 1]:
-        for yd in [-1, 0, 1]:
-            if xd == yd == 0:
-                continue
-            yield V(xd, yd)
 
 
 def get_positions(lines, look_for):

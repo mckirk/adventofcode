@@ -33,8 +33,7 @@ class Board(ABC):
         print("\n".join(ls))
 
     @abstractmethod
-    def by_lines(self) -> Iterable:
-        ...
+    def by_lines(self) -> Iterable: ...
 
 
 def num_diff(s1, s2):
@@ -56,7 +55,7 @@ class ListBoard(Board):
                 tiles[(x, y)] = c
 
         return tiles
-    
+
     def find_reflection_y(self, num_defects=0):
         for i, _ in enumerate(self.board):
             parts = self.board[:i][::-1], self.board[i:]

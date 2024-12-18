@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from functools import reduce
+from typing import Optional
 from intervaltree import Interval, IntervalTree
 
 
@@ -15,7 +16,7 @@ class Cube:
     start: V3
     end: V3
 
-    landed_at_z: int | None = field(default=None)
+    landed_at_z: Optional[int] = field(default=None)
 
     would_fall_if: set["Cube"] = field(default_factory=set)
 
@@ -26,26 +27,26 @@ class Cube:
 
     @property
     def x_interval(self):
-        return Interval(self.start.x, self.end.x+1, self)
-    
+        return Interval(self.start.x, self.end.x + 1, self)
+
     @property
     def y_interval(self):
-        return Interval(self.start.y, self.end.y+1, self)
-    
+        return Interval(self.start.y, self.end.y + 1, self)
+
     @property
     def landed_z_end(self):
         return self.landed_at_z + self.end.z - self.start.z
-    
+
     def __hash__(self):
         return hash(id(self))
-    
+
     def __eq__(self, other):
         return self is other
-    
+
     def land(self, grid: "Grid"):
         if self.landed_at_z is not None:
             return
-        
+
         overlap = grid.overlap(self)
 
         highest_z = 0
@@ -62,13 +63,13 @@ class Cube:
                 resting_on = [o]
             elif o.landed_z_end == highest_z:
                 resting_on.append(o)
-        
+
         self.landed_at_z = highest_z + 1
 
         if resting_on:
             would_fall_if_sets = [o.would_fall_if | {o} for o in resting_on]
             self.would_fall_if = reduce(lambda a, b: a & b, would_fall_if_sets)
-    
+
 
 class Grid:
     def __init__(self):
