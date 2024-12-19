@@ -9,7 +9,7 @@ input_file = Path(__file__).parent / "input.txt"
 input = input_file.read_text().strip()
 lines = input.splitlines()
 
-spec = "[<mask:mask = {w}|mem:mem`[{i}`] = {i}>|\n]"
+spec = "[<mask:mask = {w}|mem:mem\\[{i}\\] = {i}>|\n]"
 
 def main():
     ins = parse(spec, input)

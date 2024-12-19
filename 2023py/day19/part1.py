@@ -13,9 +13,9 @@ lines = input.splitlines()
 blocks = input.split("\n\n")
 
 spec = """\
-[{key:w}`{[<more:{var:w}`>{v:i}:{dst:w}|less:{var:w}`<{v:i}:{dst:w}|otherwise:{dst:w}>|,]`}|\n]
+[{key:w}\\{[<more:{var:w}\\>{v:i}:{dst:w}|less:{var:w}\\<{v:i}:{dst:w}|otherwise:{dst:w}>|,]\\}|\n]
 
-[`{[{key:w}={i}|,]`}|\n]"""
+[\\{[{key:w}={i}|,]\\}|\n]"""
 
 
 def main():

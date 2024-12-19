@@ -15,7 +15,7 @@ lines = input.splitlines()
 blocks = input.split("\n\n")
 
 spec = """\
-[<broad:{origin:w}|flip:%{origin:w}|conj:&{origin:w}> -`> {dst:[{w}|,]}|\n]"""
+[<broad:{origin:w}|flip:%{origin:w}|conj:&{origin:w}> -\\> {dst:[{w}|, ]}|\n]"""
 
 
 LOW = False
