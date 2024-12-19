@@ -105,9 +105,7 @@ class AdventDay:
 
         self.part1_path = Path(self.day_dir) / "part1.py"
         self.part2_path = Path(self.day_dir) / "part2.py"
-        self.lib_path = Path(self.day_dir) / "lib.py"
         self.input_path = Path(self.day_dir) / "input.txt"
-        self.sample1_path = Path(self.day_dir) / "sample1.txt"
         self.description_path = Path(self.day_dir) / "description.md"
         self.stats_path = Path(self.day_dir) / "stats.json"
 
@@ -133,14 +131,6 @@ class AdventDay:
         if not self.part1_path.exists():
             print(f"Creating part1.py...")
             self.part1_path.touch(exist_ok=False)
-
-        if not self.sample1_path.exists():
-            print(f"Creating sample.txt...")
-            self.sample1_path.touch(exist_ok=False)
-
-        if not self.lib_path.exists():
-            print(f"Creating lib.py...")
-            self.lib_path.touch(exist_ok=False)
 
     def create_structure_part2(self):
         # update description for part 2
@@ -220,17 +210,14 @@ class AdventDay:
 
         self.description_path.write_text(get_description())
 
-    def start_editor(self):
+    def start_editor(self, part):
         print(f"Starting editor...")
         subprocess.run(
             [
                 "code",
                 "-n",
                 str(self.day_dir),
-                str(self.part1_path),
-                str(self.lib_path),
-                str(self.sample1_path),
-                str(self.description_path),
+                str(self.part1_path if part == 1 else self.part2_path),
             ]
         )
 
@@ -282,6 +269,7 @@ class AdventDay:
             if part == 2:
                 self.create_structure_part2()
                 self.update_stats(1)
+                self.start_editor(2)
 
             while True:
                 print(f"Enter answer for part {part}:")
@@ -338,7 +326,7 @@ def main():
         return
 
     advent_day.fetch_input()
-    advent_day.start_editor()
+    advent_day.start_editor(1)
     advent_day.submit_answers_until_correct()
 
 
