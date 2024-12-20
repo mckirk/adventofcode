@@ -4,6 +4,8 @@ from collections import defaultdict, Counter
 
 import aocparser
 
+from lib.pos import V
+
 script_dir = Path(__file__).parent.parent
 default_spec_name = "spec.aocp"
 
