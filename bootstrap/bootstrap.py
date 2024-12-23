@@ -143,9 +143,9 @@ class AdventDay:
             self.part2_path.write_text(self.part1_path.read_text())
 
     def wait_until_6am(self):
-        wait_until = datetime(self.year, 12, self.day, 6, 0, 0, 0, tzinfo=tz)
+        wait_until = datetime(self.year, 12, self.day, 5, 0, 0, 0, tzinfo=pytz.utc)
 
-        while (wait_delta := wait_until - datetime.now(tz)).total_seconds() > 0:
+        while (wait_delta := wait_until - datetime.now(pytz.utc)).total_seconds() > 0:
             print(f"Waiting {wait_delta.total_seconds()} seconds until 6am CET...")
             time.sleep(wait_delta.total_seconds())
 
