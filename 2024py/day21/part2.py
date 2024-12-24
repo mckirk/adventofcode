@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from functools import cache
 from lib import *
 
 num_kp = {
@@ -73,51 +74,38 @@ dir_shortest_paths = {
     for k2 in dir_kp.keys()
 }
 
+NUM = 0
+DIR = 1
 
-def get_seqs(input_seq, shortest_paths):
-    res = [[]]
-    for i in range(len(input_seq) - 1):
-        new_res = []
-        for p in shortest_paths[(input_seq[i], input_seq[i + 1])]:
-            new_res.extend([r + p + ["A"] for r in res])
-        res = new_res
+
+@cache
+def get_seq_len(kp_sel, start, seq, lvl_to_go):
+    if lvl_to_go == 0:
+        return len(seq)
+
+    kp = dir_shortest_paths if kp_sel == DIR else num_shortest_paths
+
+    res = 0
+    from_start = [start] + list(seq)
+    for i in range(len(seq)):
+        res += min(
+            get_seq_len(DIR, "A", tuple(p + ["A"]), lvl_to_go - 1)
+            for p in kp[(from_start[i], from_start[i + 1])]
+        )
     return res
-
-
-def get_steps(p):
-    steps = 0
-    for i in range(len(p) - 1):
-        steps += len(dir_shortest_paths[(p[i], p[i + 1])][0]) + 1
-    return steps
-
-
-def print_seq(seq):
-    print("".join(readable[x] for x in seq))
-
-
-def print_seqs(seqs):
-    for seq in seqs:
-        print_seq(seq)
 
 
 def run(inp: Input):
     res = 0
     for l in inp.lines:
-        seqs = get_seqs("A" + l, num_shortest_paths)
-        for _ in range(2):
-            seqs = sum(
-                [get_seqs(["A"] + list(seq), dir_shortest_paths) for seq in seqs], []
-            )
-            seqs.sort(key=get_steps)
-            seqs = seqs[:1]
-        seq = min(seqs, key=len)
-        res += int(l[:-1]) * len(seq)
+        seq_len = get_seq_len(NUM, "A", tuple(l), 26)
+        res += int(l[:-1]) * seq_len
 
     return res
 
 
 def main():
-    run_on_inputs(run, {1: 126384})
+    run_on_inputs(run, {1: None})
 
 
 if __name__ == "__main__":
