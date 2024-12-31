@@ -1,3 +1,3 @@
 [{key:w}: {i}]
 
-[{w} <and:AND|xor:XOR|or:OR> {w} -\> {key:w}]
+[{w} <and_:AND|xor_:XOR|or_:OR> {w} -\> {key:w}]

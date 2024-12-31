@@ -21,11 +21,11 @@ def run(inp: Input):
             vals = [state.get(w) for w in depends]
             if any(v is None for v in vals):
                 continue
-            if instr["and"] is not None:
+            if instr.and_:
                 state[u] = operator.and_(*vals)
-            elif instr["or"] is not None:
+            elif instr.or_:
                 state[u] = operator.or_(*vals)
-            elif instr["xor"] is not None:
+            elif instr.xor_:
                 state[u] = operator.xor(*vals)
             else:
                 assert False

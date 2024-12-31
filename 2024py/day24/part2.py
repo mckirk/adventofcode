@@ -29,11 +29,11 @@ def eval(dependencies: dict, state, constrs: list):
         out = state_transl(u, state)
         vals = [state_transl(d, state) for d in depends]
 
-        if instr["and"] is not None:
+        if instr.and_:
             constrs.append(out == operator.and_(*vals))
-        elif instr["or"] is not None:
+        elif instr.or_:
             constrs.append(out == operator.or_(*vals))
-        elif instr["xor"] is not None:
+        elif instr.xor_:
             constrs.append(out == operator.xor(*vals))
         else:
             assert False
@@ -42,11 +42,11 @@ def eval(dependencies: dict, state, constrs: list):
 
 def print_deps(deps):
     for n, (inps, instr) in deps.items():
-        if instr["and"] is not None:
+        if instr.and_:
             print(f"{n} = {' AND '.join(inps)}")
-        if instr["or"] is not None:
+        if instr.or_:
             print(f"{n} = {' OR '.join(inps)}")
-        if instr["xor"] is not None:
+        if instr.xor_:
             print(f"{n} = {' XOR '.join(inps)}")
 
 
