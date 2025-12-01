@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Optional
-from collections import defaultdict, Counter
 
+from .pos import V
 import aocparser
 
 script_dir = Path(__file__).parent.parent
@@ -9,14 +9,14 @@ default_spec_name = "spec.aocp"
 
 
 class Input:
-    def __init__(self, content: Optional[str], spec_name: str = None):
+    def __init__(self, content: Optional[str], spec_name: str | None = None):
         self.content = content
 
         if not content:
             return
 
-        self.lines = self.content.splitlines()
-        self.blocks = self.content.split("\n\n")
+        self.lines = content.splitlines()
+        self.blocks = content.split("\n\n")
 
         if (
             spec_name
@@ -27,8 +27,13 @@ class Input:
         else:
             self.parsed = None
 
+    @property
+    def parsed_definite(self):
+        assert self.parsed is not None
+        return self.parsed
+
     @classmethod
-    def from_file(cls, path: Path, spec_name: str = None):
+    def from_file(cls, path: Path, spec_name: str | None = None):
         if not path.is_file():
             return cls(None)
         else:
@@ -56,7 +61,7 @@ def get_sample_input(idx: int):
     return Input.from_file(script_dir / f"sample{idx}.txt", default_spec_name)
 
 
-def run_on_inputs(run, expected_sample_results: dict[int, Any] = None, **kwargs):
+def run_on_inputs(run, expected_sample_results: dict[int, Any] | None = None, **kwargs):
     expected_sample_results = expected_sample_results or dict()
 
     def get_run_args(key):

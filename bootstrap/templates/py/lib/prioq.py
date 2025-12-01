@@ -1,7 +1,13 @@
 import heapq
-from typing import Generic, TypeVar
+from typing import Generic, Protocol, Self, TypeVar
 
-T = TypeVar("T")
+
+class SupportsRichComparison(Protocol):
+    def __lt__(self, other: Self, /) -> bool: ...
+    def __gt__(self, other: Self, /) -> bool: ...
+
+
+T = TypeVar("T", bound=SupportsRichComparison)
 
 
 class PriorityQueue(Generic[T]):

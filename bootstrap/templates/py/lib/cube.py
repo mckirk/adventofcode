@@ -35,6 +35,7 @@ class Cube:
 
     @property
     def landed_z_end(self):
+        assert self.landed_at_z is not None
         return self.landed_at_z + self.end.z - self.start.z
 
     def __hash__(self):

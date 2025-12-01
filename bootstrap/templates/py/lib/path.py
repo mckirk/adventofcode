@@ -1,19 +1,29 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Protocol, Self
 
 from lib.cmp import Min
 from lib.prioq import PriorityQueue
 from lib.pos import V
 
 
+class ValidCost(Protocol):
+    def __add__(self, x: Self, /) -> Self: ...
+    def __lt__(self, other: Self, /) -> bool: ...
+
+
+class ValidKey(Protocol):
+    def __eq__(self, x: Self, /) -> bool: ...
+    def __hash__(self, /) -> int: ...
+
+
 class AStarState(ABC):
     @abstractmethod
-    def incurred_cost(self): ...
+    def incurred_cost(self) -> ValidCost: ...
 
     @abstractmethod
-    def estimated_cost(self): ...
+    def estimated_cost(self) -> ValidCost: ...
 
     @abstractmethod
     def is_goal(self) -> bool: ...
@@ -22,13 +32,16 @@ class AStarState(ABC):
     def next_states(self) -> Iterable["AStarState"]: ...
 
     @abstractmethod
-    def key(self): ...
+    def key(self) -> ValidKey: ...
 
     def cost(self):
         return self.incurred_cost() + self.estimated_cost()
 
     def __lt__(self, other: "AStarState"):
         return self.cost() < other.cost()
+
+    def __gt__(self, other: "AStarState"):
+        return self.cost() > other.cost()
 
 
 def a_star(start_states):
