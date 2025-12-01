@@ -161,12 +161,13 @@ class AdventDay:
             stats = DayStats.model_validate_json(self.stats_path.read_text())
 
             changed = False
-            if step == 1 and stats.part1 is None:
-                stats.part1 = datetime.now(tz) - stats.started
-                changed = True
-            elif step == 2 and stats.part2 is None:
-                stats.part2 = datetime.now(tz) - stats.started
-                changed = True
+            if stats.started is not None:
+                if step == 1 and stats.part1 is None:
+                    stats.part1 = datetime.now(tz) - stats.started
+                    changed = True
+                elif step == 2 and stats.part2 is None:
+                    stats.part2 = datetime.now(tz) - stats.started
+                    changed = True
 
             if changed:
                 self.stats_path.write_text(stats.model_dump_json(indent=2))
@@ -286,7 +287,10 @@ class AdventDay:
                     print(f"Too low!")
                 elif answer == SubmissionResponse.INCORRECT:
                     print(f"Incorrect!")
-                elif answer == SubmissionResponse.TOO_RECENTLY:
+                elif (
+                    answer == SubmissionResponse.TOO_RECENTLY
+                    and next_submit_time is not None
+                ):
                     print(
                         f"Too recently submitted, waiting until {next_submit_time}..."
                     )

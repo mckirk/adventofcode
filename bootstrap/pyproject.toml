@@ -1,0 +1,13 @@
+[project]
+name = "bootstrap"
+version = "0.1.0"
+description = "AoC Solution Bootstrap"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "html2text>=2025.4.15",
+    "pydantic>=2.12.5",
+    "pytz>=2025.2",
+    "requests>=2.32.5",
+    "tenacity>=9.1.2",
+]
