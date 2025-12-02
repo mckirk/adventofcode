@@ -4,65 +4,64 @@ from lib import *
 import re
 
 
-factors = {
-    2: [(11, 1)],
-    3: [(111, 1)],
-    4: [(1111, 1), (101, 2)],
-    5: [(11111, 1)],
-    6: [(111111, 1), (1001, 3), (10101, 2)],
-    7: [(1111111, 1)],
-    8: [(11111111, 1), (10001, 4), (1010101, 2)],
-    9: [(111111111, 1), (1001001, 3)],
-    10: [(1111111111, 1), (100001, 5), (101010101, 2)],
-}
-
-
-def get_len10(n: int):
+def does_repeat(n: int):
     if n < 100000:
         if n < 1000:
             if n < 10:
-                return 1
+                return False
             elif n < 100:
-                return 2
+                return n % 11 == 0 and (n // 11) < 10
             else:
-                return 3
+                return n % 111 == 0 and (n // 111) < 10
         else:
             if n < 10000:
-                return 4
+                return (n % 1111 == 0 and (n // 1111) < 10) or (
+                    n % 101 == 0 and (n // 101) < 100
+                )
             else:
-                return 5
+                return n % 11111 == 0 and (n // 11111) < 10
     else:
         if n < 10000000:
             if n < 1000000:
-                return 6
+                return (
+                    (n % 111111 == 0 and (n // 111111) < 10)
+                    or (n % 10101 == 0 and (n // 10101) < 100)
+                    or (n % 1001 == 0 and (n // 1001) < 1000)
+                )
             else:
-                return 7
+                return n % 1111111 == 0 and (n // 1111111) < 10
         else:
             if n < 100000000:
-                return 8
+                return (
+                    (n % 11111111 == 0 and (n // 11111111) < 10)
+                    or (n % 1010101 == 0 and (n // 1010101) < 100)
+                    or (n % 10001 == 0 and (n // 10001) < 10000)
+                )
             elif n < 1000000000:
-                return 9
+                return (n % 111111111 == 0 and (n // 111111111) < 10) or (
+                    n % 1001001 == 0 and (n // 1001001) < 1000
+                )
             else:
-                return 10
+                return (
+                    (n % 1111111111 == 0 and (n // 1111111111) < 10)
+                    or (n % 101010101 == 0 and (n // 101010101) < 100)
+                    or (n % 100001 == 0 and (n // 100001) < 100000)
+                )
 
 
 def run(inp: Input):
     res = 0
     for f, t in inp.parsed_definite:
-        for i in range(f, t+1):
-            if i < 10:
-                continue
-            for f, l in factors[get_len10(i)]:
-                if i % f == 0 and (i // f) < 10**l:
-                    res += i
-                    break
+        for i in range(f, t + 1):
+            if does_repeat(i):
+                res += i
     return res
 
 
 def run_lazy(inp: Input):
     res = 0
     for f, t in inp.parsed_definite:
-        for i in range(f, t+1):
+        for i in range(f, t + 1):
             s = str(i)
             if re.match(r"^(\w+)\1+$", s):
                 res += i
