@@ -1,5 +1,8 @@
 from pathlib import Path
 from typing import Any, Optional
+import time
+
+from prefixed import Float
 
 from .pos import V
 import aocparser
@@ -67,16 +70,22 @@ def run_on_inputs(run, expected_sample_results: dict[int, Any] | None = None, **
     def get_run_args(key):
         return {k: d.get(key) for k, d in kwargs.items()}
 
+    def run_with_timing(label: str, inp: Input, **run_args):
+        start = time.perf_counter()
+        res = run(inp, **run_args)
+        end = time.perf_counter()
+        duration = Float(end - start)
+        print(f"{label}: {res} ({duration:.2h}s)")
+        return res
+
     for i, exp in expected_sample_results.items():
         inp = get_sample_input(i)
         if inp.exists:
-            res = run(inp, **get_run_args(i))
-            print(f"Sample {i}: {res}")
+            res = run_with_timing(f"Sample {i}", inp, **get_run_args(i))
             if exp is not None and res != exp:
                 print(
                     f"Did not match expected result for sample {i} ({exp}), aborting."
                 )
                 return
 
-    res = run(problem_input, **get_run_args(None))
-    print(f"Result: {res}")
+    return run_with_timing("Result", problem_input, **get_run_args(None))
