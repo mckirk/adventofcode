@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Callable, Container, Self
 
 
 @dataclass(frozen=True, unsafe_hash=True)
@@ -48,11 +49,21 @@ class V:
                     continue
                 yield cls(xd, yd)
 
-    def adj(self, *, limits: tuple[int, int], diagonal: bool):
+    def adj(self, *, valid: tuple[int, int] | Container[Self] | None, diagonal: bool):
+        is_valid: Callable[[V], bool]
+        if valid is not None:
+            if isinstance(valid, tuple):
+                is_valid = lambda p: p.within(valid)
+            elif isinstance(valid, Container):
+                is_valid = lambda p: p in valid
+            else:
+                raise ValueError(type(valid))
+        else:
+            is_valid = lambda _: True
+
         for d in self.directions(diagonal):
             p2 = self + d
-            if p2.within(limits):
-                yield p2, d
+            if is_valid(p2): yield p2, d
 
     def turn(self, turns_right):
         turns_right %= 4

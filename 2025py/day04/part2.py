@@ -4,21 +4,20 @@ from lib import *
 
 
 def run(inp: Input):
-    grid = {p: c for p, c in inp.as_pos}
+    rolls = {p for p, c in inp.as_pos if c == "@"}
     res = 0
     while True:
         to_remove = []
-        for p, c in grid.items():
-            if c != "@": continue
+        for p in rolls:
             cnt = 0
-            for d in V.directions(diagonal=True):
-                np = p + d
-                if grid.get(np) == "@": cnt += 1
-            if cnt < 4: to_remove.append(p)
+            for _ in p.adj(valid=rolls, diagonal=True):
+                cnt += 1
+                if cnt >= 4: break
+            else: to_remove.append(p)
         if not to_remove:
             break
         for p in to_remove:
-            grid[p] = "."
+            rolls.remove(p)
             res += 1
 
     return res
