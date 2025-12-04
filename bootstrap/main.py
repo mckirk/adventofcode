@@ -104,13 +104,18 @@ class InputHandler:
         self.server_socket = None
 
     def __enter__(self):
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind(("127.0.0.1", self.port))
-        server_socket.listen(1)
-        server_socket.setblocking(False)
-        inputs = [sys.stdin, server_socket]
-        print(f"Listening for answers on stdin and localhost:{self.port}...")
+        try:
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server_socket.bind(("127.0.0.1", self.port))
+            server_socket.listen(1)
+            server_socket.setblocking(False)
+            inputs = [sys.stdin, server_socket]
+            print(f"Listening for answers on stdin and localhost:{self.port}...")
+        except Exception as e:
+            inputs = [sys.stdin]
+            server_socket = None
+            print(f"Could not open server socket: {e}; listening for answers on stdin only...")
 
         self.inputs = inputs
         self.server_socket = server_socket
@@ -118,11 +123,10 @@ class InputHandler:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        assert self.server_socket is not None
-        self.server_socket.close()
+        if self.server_socket is not None:
+            self.server_socket.close()
 
     def wait_for_answer(self):
-        assert self.server_socket is not None
         assert self.inputs is not None
 
         part_answer = None
@@ -135,18 +139,18 @@ class InputHandler:
                         print("Input empty; retrying")
                         continue
                     part_answer = line.strip()
-                elif s is self.server_socket:
+                elif self.server_socket is not None and s is self.server_socket:
                     conn, _ = self.server_socket.accept()
                     conn.setblocking(False)
                     self.inputs.append(conn)
                 else:
                     data = bytes()
                     try:
-                        while True:
-                            b = s.recv(1)
-                            if not b or b == b"\n":
+                        while b"\n" not in data:
+                            chunk = s.recv(4096)
+                            if not chunk:
                                 break
-                            data += b
+                            data += chunk
                         if data:
                             part_answer = data.decode("utf-8").strip()
                     except Exception as e:
