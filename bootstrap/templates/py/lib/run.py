@@ -5,6 +5,7 @@ import time
 from prefixed import Float
 
 from .pos import V
+from .submit import submit_answer
 import aocparser
 
 script_dir = Path(__file__).parent.parent
@@ -64,8 +65,12 @@ def get_sample_input(idx: int):
     return Input.from_file(script_dir / f"sample{idx}.txt", default_spec_name)
 
 
-def run_on_inputs(run, expected_sample_results: dict[int, Any] | None = None, **kwargs):
+def run_on_inputs(run, expected_sample_results: dict[int, Any] | None = None, *, auto_submit: bool | None = None, **kwargs):
     expected_sample_results = expected_sample_results or dict()
+
+    # By default, auto-submit if we have an expected result for a sample input
+    if auto_submit is None:
+        auto_submit = any(v is not None for v in expected_sample_results.values())
 
     def get_run_args(key):
         return {k: d.get(key) for k, d in kwargs.items()}
@@ -88,4 +93,9 @@ def run_on_inputs(run, expected_sample_results: dict[int, Any] | None = None, **
                 )
                 return
 
-    return run_with_timing("Result", problem_input, **get_run_args(None))
+    res = run_with_timing("Result", problem_input, **get_run_args(None))
+
+    if auto_submit:
+        submit_answer(31337, str(res))
+
+    return res

@@ -13,6 +13,9 @@ import pytz
 import requests
 from tenacity import retry, stop_after_attempt, wait_random
 import subprocess
+import socket
+import select
+import sys
 
 DESC_REGEX = r"<main>(.*)</main>"
 TIME_LEFT_REGEX = re.compile(r"You have ((?P<min>\d+)m )?((?P<sec>\d+)s )?left")
@@ -92,6 +95,65 @@ def copy_directory_without_overwrite(src_dir: Path, dest_dir: Path):
                 print(f"Copied: {src_item} -> {target_path}")
             else:
                 print(f"Skipped (already exists): {target_path}")
+
+
+class InputHandler:
+    def __init__(self, port=31337):
+        self.port = port
+        self.inputs = None
+        self.server_socket = None
+
+    def __enter__(self):
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_socket.bind(("127.0.0.1", self.port))
+        server_socket.listen(1)
+        server_socket.setblocking(False)
+        inputs = [sys.stdin, server_socket]
+        print(f"Listening for answers on stdin and localhost:{self.port}...")
+
+        self.inputs = inputs
+        self.server_socket = server_socket
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        assert self.server_socket is not None
+        self.server_socket.close()
+
+    def wait_for_answer(self):
+        assert self.server_socket is not None
+        assert self.inputs is not None
+
+        part_answer = None
+        while not part_answer:
+            readable, _, _ = select.select(self.inputs, [], [])
+            for s in readable:
+                if s is sys.stdin:
+                    line = sys.stdin.readline()
+                    if not line:
+                        print("Input empty; retrying")
+                        continue
+                    part_answer = line.strip()
+                elif s is self.server_socket:
+                    conn, _ = self.server_socket.accept()
+                    conn.setblocking(False)
+                    self.inputs.append(conn)
+                else:
+                    data = bytes()
+                    try:
+                        while True:
+                            b = s.recv(1)
+                            if not b or b == b"\n":
+                                break
+                            data += b
+                        if data:
+                            part_answer = data.decode("utf-8").strip()
+                    except Exception as e:
+                        print(f"Error receiving data: {e}")
+                    s.close()
+                    self.inputs.remove(s)
+        return part_answer
 
 
 class AdventDay:
@@ -207,7 +269,7 @@ class AdventDay:
         if PART1_DONE in desc:
             self.parts_left = [2]
         if PART2_DONE in desc:
-            self.parts_left = []
+            self.parts_left = [0]
 
         self.description_path.write_text(get_description())
 
@@ -274,7 +336,9 @@ class AdventDay:
 
             while True:
                 print(f"Enter answer for part {part}:")
-                part_answer = input()
+
+                with InputHandler() as input_handler:
+                    part_answer = input_handler.wait_for_answer()
 
                 answer, next_submit_time = self.submit_answer(part, part_answer)
 
