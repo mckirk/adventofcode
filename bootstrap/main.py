@@ -55,6 +55,7 @@ def create_argparser():
     parser = argparse.ArgumentParser(description="Advent of Code")
     parser.add_argument("--day", type=int, default=None)
     parser.add_argument("--year", type=int, default=None)
+    parser.add_argument("--lang", choices=["py", "cpp"], default="py")
     return parser
 
 
@@ -161,16 +162,17 @@ class InputHandler:
 
 
 class AdventDay:
-    def __init__(self, day: int, year: int):
+    def __init__(self, day: int, year: int, lang: str):
         self.day = day
         self.year = year
+        self.lang = lang
 
-        self.day_dir = script_dir.parent / f"{year}py" / f"day{day:02d}"
+        self.day_dir = script_dir.parent / f"{year}{lang}" / f"day{day:02d}"
 
-        self.template_dir = script_dir / "templates" / "py"
+        self.template_dir = script_dir / "templates" / lang
 
-        self.part1_path = Path(self.day_dir) / "part1.py"
-        self.part2_path = Path(self.day_dir) / "part2.py"
+        self.part1_path = Path(self.day_dir) / f"part1.{lang}"
+        self.part2_path = Path(self.day_dir) / f"part2.{lang}"
         self.input_path = Path(self.day_dir) / "input.txt"
         self.description_path = Path(self.day_dir) / "description.md"
         self.stats_path = Path(self.day_dir) / "stats.json"
@@ -195,7 +197,7 @@ class AdventDay:
             copy_directory_without_overwrite(self.template_dir, self.day_dir)
 
         if not self.part1_path.exists():
-            print(f"Creating part1.py...")
+            print(f"Creating part1.{self.lang}...")
             self.part1_path.touch(exist_ok=False)
 
     def create_structure_part2(self):
@@ -204,7 +206,7 @@ class AdventDay:
 
         # copy part 1 to part 2
         if not self.part2_path.exists():
-            print(f"Creating part2.py...")
+            print(f"Creating part2.{self.lang}...")
             self.part2_path.touch(exist_ok=False)
             self.part2_path.write_text(self.part1_path.read_text())
 
@@ -386,7 +388,7 @@ def main():
     day = args.day or now.day
     year = args.year or now.year
 
-    advent_day = AdventDay(day, year)
+    advent_day = AdventDay(day, year, args.lang)
 
     advent_day.create_structure_part1()
     advent_day.wait_until_6am()
