@@ -5,41 +5,31 @@
 using namespace std;
 
 int run(Input &input) {
-    auto as_pos = input.as_pos();
-
-    optional<V> start = nullopt;
-    auto splitters = unordered_set<V>{};
-
-    for (const auto& [pos, ch] : as_pos) {
-        if (ch == 'S') {
-            start = pos;
-        } else if (ch == '^') {
-            splitters.insert(pos);
-        }
-    }
+    auto limits = input.limits();
 
     int res = 0;
-    unordered_set<V> cur = {start.value()};
-    unordered_set<V> next = {};
+    auto cur = vector<bool>(limits.second, false);
+    auto next = vector<bool>(limits.second, false);
+    for (const auto& line : input.lines) {
+        for (auto [i, ch] : enumerate(line)) {
+            if (ch == 'S') {
+                next[i] = true;
+                continue;
+            }
 
-    auto add_next = [&next](const V &np) {
-        next.insert(np);
-    };
+            if (!cur[i]) continue;
 
-    for(int i=0; i<input.limits().first; ++i) {
-        for (auto &p : cur) {
-            auto np = p + V{1, 0};
-            if (splitters.contains(p)) {
+            if (ch == '^') {
                 res += 1;
-                add_next(np + V{0,  1});
-                add_next(np + V{0, -1});
+                next[i-1] = true;
+                next[i+1] = true;
             } else {
-                add_next(np);
+                next[i] = true;
             }
         }
 
         swap(cur, next);
-        next.clear();
+        fill(next.begin(), next.end(), false);
     }
 
     return res;
