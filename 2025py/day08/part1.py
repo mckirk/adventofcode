@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from lib import *
+import heapq
 
 
 def run(inp: Input):
@@ -11,14 +12,14 @@ def run(inp: Input):
     dists = []
     for i, a in enumerate(vs):
         for j, b in enumerate(vs[i+1:], start=i+1):
-            dists.append((np.linalg.norm(a-b), i, j))
-
-    dists.sort()
+            heapq.heappush(dists, (np.linalg.norm(a-b), i, j))
 
     next_c = 0
     circuit = dict()
     by_circuit = defaultdict(set)
-    for (d, i, j) in dists[:10 if inp.is_sample else 1000]:
+    for _ in range(10 if inp.is_sample else 1000):
+        _, i, j = heapq.heappop(dists)
+
         if i in circuit and j not in circuit:
             ci = circuit[i]
             circuit[j] = ci
@@ -40,8 +41,6 @@ def run(inp: Input):
             next_c += 1
 
     sizes = sorted((len(circuit) for circuit in by_circuit.values()), reverse=True)
-
-    print(sizes)
 
     res = 1
     for s in sizes[:3]:
