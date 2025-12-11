@@ -158,6 +158,9 @@ class InputHandler:
                         print(f"Error receiving data: {e}")
                     s.close()
                     self.inputs.remove(s)
+
+        print(f"Trying answer: {part_answer}")
+
         return part_answer
 
 
