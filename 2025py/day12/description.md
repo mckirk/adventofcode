@@ -147,9 +147,30 @@ Consider the regions beneath each tree and the presents the Elves would like
 to fit into each of them. _How many of the regions can fit all of the presents
 listed?_
 
-To begin, get your puzzle input.
+Your puzzle answer was `548`.
 
-Answer:
+The first half of this puzzle is complete! It provides one gold star: *
+
+## \--- Part Two ---
+
+The Elves thank you profusely for the help and start rearranging the oddly-
+shaped presents. As you look up, you notice that a lot more Elves have arrived
+here at the Christmas tree farm.
+
+In fact, many of these new arrivals look _familiar_ : they're the Elves you
+helped while decorating the North Pole base. Right on schedule, each group
+seems to have brought a _star_ to put atop one of the Christmas trees!
+
+Before any of them can find a ladder, a particularly large Christmas tree
+suddenly flashes brightly when a large _star_ magically appears above it! As
+your eyes readjust, you think you notice a portly man with a white beard
+disappear into the crowd.
+
+You go look for a ladder; only _23 stars_ to go.
+
+You have enough stars to .
+
+Although it hasn't changed, you can still get your puzzle input.
 
 You can also [Shareon Bluesky Twitter Mastodon] this puzzle.
 
